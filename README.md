@@ -44,7 +44,17 @@ Tapping a demo opens the player screen, which renders the `.rc` file in real tim
 - Prev/next navigation for built-in demos
 - Error handling with fallback display
 
-> **Note:** App UI screenshots will be added in a future update. The images below show rendered `.rc` content as displayed by the app.
+### App Screenshots
+
+<p align="center">
+  <img src="docs/assets/app_browser.png" alt="Demo Browser" width="220">
+  <img src="docs/assets/app_search.png" alt="Search Filter" width="220">
+  <img src="docs/assets/app_player.png" alt="Player Screen" width="220">
+</p>
+
+<p align="center">
+  <em>Demo browser with categories | Search filtering | Player rendering a clock demo</em>
+</p>
 
 ---
 
@@ -120,7 +130,7 @@ All images below are real Android renders from `.rc` files included with the app
    - Use the search bar to filter by name
 
 5. **Open your own `.rc` files:**
-   - Tap the folder icon in the top bar
+   - Tap "Open .rc file from storage..." on the main screen
    - Select an `.rc` file from device storage
    - The file is rendered and added to recent imports
 
