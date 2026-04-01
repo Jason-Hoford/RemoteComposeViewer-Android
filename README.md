@@ -24,6 +24,16 @@ A complete animated clock fits in under 2KB. A pie chart with labels fits in und
 
 ---
 
+## Upstream Source & Attribution
+
+This app renders `.rc` files using the **RemoteCompose player library** from the [AndroidX `compose/remote` tree](https://android.googlesource.com/platform/frameworks/support/+/HEAD/compose/remote/), part of the Android Open Source Project.
+
+The `modules/remote-compose/` directory contains a vendored copy of the RemoteCompose player and core runtime sources (294 Java files). These files are unmodified from the upstream AndroidX source and retain their original copyright headers (`Copyright (C) 2023-2025 The Android Open Source Project`, Apache 2.0). The app code in `app/` (Kotlin — the demo browser and player integration) is original to this project.
+
+See [Dependency Approach](#dependency-approach) for details on why the sources are vendored and what alternatives exist.
+
+---
+
 ## The App
 
 ### Demo Browser
@@ -181,7 +191,21 @@ RemoteComposeViewer-Android/
 
 - **`MainActivity.kt`** — Demo browser with category grouping, search, file import, and recent history. Discovers all `.rc` files from `R.raw` resources via reflection.
 - **`PlayerActivity.kt`** — Renders `.rc` files using `RemoteComposePlayer` (the official Android RemoteCompose renderer). Supports both built-in demos (with prev/next navigation) and imported files.
-- **`modules/remote-compose/`** — Bundled copy of the RemoteCompose player library sources from Android's Remote Compose project. Includes the core runtime (262 files), player core (15 files), and player view (17 files).
+- **`modules/remote-compose/`** — Vendored copy of the RemoteCompose player and core runtime sources from the AndroidX `compose/remote` tree. Includes the core runtime (262 files) and player (32 files). All files retain their original AOSP copyright headers.
+
+### Dependency Approach
+
+This project **vendors the RemoteCompose library as source code** rather than consuming it as a Gradle/Maven dependency. The 294 Java source files in `modules/remote-compose/` are compiled as a local Gradle module (`implementation(project(":remote-compose"))`).
+
+**Why vendored source?** At the time this project was created, there was no published Maven artifact for the RemoteCompose player library. The upstream `compose/remote` code lives in the AndroidX support tree but is not yet distributed through Google's Maven repository as a standalone dependency.
+
+**Maven/Gradle alternative.** If AndroidX publishes RemoteCompose artifacts in the future (as shown in the [PeopleInSpace integration](https://github.com/joreilly/PeopleInSpace/pull/452/files)), this project could replace the vendored source with a standard Gradle dependency like:
+
+```kotlin
+implementation("androidx.compose.remote:remote-compose-player:x.y.z")
+```
+
+This would eliminate the need to carry 294 source files and would automatically track upstream updates. This is a future cleanup task — the vendored approach works correctly today and the source files are unmodified from upstream.
 
 ---
 
@@ -200,20 +224,19 @@ The app is functional and stable for its primary use case: browsing and renderin
 - The internal package name (`com.example.myfirstapprc`) reflects the app's origin as a development tool — kept as-is to avoid a risky refactor
 - No `.rc` file editor — this is a viewer/player only
 - No export or sharing functionality
-- The RemoteCompose library sources are bundled directly rather than consumed from a published artifact (no Maven artifact exists yet for the upstream library)
+- RemoteCompose library sources are vendored as source rather than consumed from a published Maven artifact (see [Dependency Approach](#dependency-approach))
 
 ---
 
 ## Relationship to RemoteUI
 
-This Android viewer app is a companion to [RemoteUI](https://github.com/Jason-Hoford/RemoteUI) — a Python generator and experimental player for `.rc` files. The workflow:
+This Android viewer app is a companion to [RemoteUI](https://github.com/Jason-Hoford/RemoteUI), a Python port of the Java/Kotlin RemoteCompose creation library. RemoteUI generates `.rc` files from Python; this app renders them using the official Android player.
 
-1. **Generate** `.rc` files using Python (`rcreate` package)
-2. **Validate** output byte-for-byte against Kotlin reference files
-3. **Render** on Android using this viewer app (the reference player)
-4. **Test** with the Python player (`rplayer`) for desktop visualization
+**Why two repos?** They serve different roles. RemoteUI is a *generator* — it creates `.rc` binary files from Python code. This repo is a *viewer* — it renders `.rc` files on Android using the upstream `RemoteComposePlayer`. They share no code but operate on the same binary format.
 
-The Android viewer was used to visually verify 11 Python-generated demos during development, including 6 purpose-built validation demos that exercise edge cases not covered by byte-level comparison.
+**Validation workflow.** The Android viewer was used as part of end-to-end validation during RemoteUI development. Python-generated `.rc` files were loaded into this app to confirm they render correctly on the reference Android player. 11 demos were visually verified this way, including 6 purpose-built validation demos that exercise edge cases not covered by byte-level comparison.
+
+Both projects are based on the same upstream source: the [AndroidX `compose/remote` tree](https://android.googlesource.com/platform/frameworks/support/+/HEAD/compose/remote/). RemoteUI ports the *creation* side (binary writer). This app bundles the *player* side (binary reader and renderer).
 
 ---
 
@@ -235,3 +258,5 @@ The Android viewer was used to visually verify 11 Python-generated demos during 
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE).
+
+The `modules/remote-compose/` directory contains source code from the [AndroidX `compose/remote` tree](https://android.googlesource.com/platform/frameworks/support/+/HEAD/compose/remote/), copyright The Android Open Source Project, licensed under Apache 2.0. All original copyright headers are retained.
